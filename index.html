@@ -1,0 +1,831 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>扫码点餐系统</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --red:#e23b2b; --red-2:#ff6a3d; --bg:#f6f6f8; --card:#fff; --ink:#1d1d1f; --muted:#8a8a90;
+  --line:#ececf0; --yellow:#ffcd3c; --green:#23b26d; --blue:#2f80ed;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.container{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;padding-bottom:72px}
+.admin-container{max-width:960px;margin:0 auto;padding:16px;padding-bottom:40px}
+.topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.topbar .back{width:34px;height:34px;border-radius:50%;border:none;background:#f2f2f5;font-size:18px}
+.topbar h1{font-size:17px;margin:0;flex:1}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#f1f1f4;color:#555;font-size:12px}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;background:var(--red);color:#fff}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.gray{background:#f2f2f5;color:#333}
+.btn.blue{background:var(--blue)}
+.btn.green{background:var(--green)}
+.btn.block{display:block;width:100%}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1}
+.sep{height:1px;background:var(--line);margin:10px 0}
+.tag{display:inline-block;background:#fff2ec;color:var(--red);border-radius:6px;padding:2px 6px;font-size:12px}
+.banner-wrap{position:relative;background:#000;overflow:hidden}
+.banner{display:flex;scroll-snap-type:x mandatory;overflow-x:auto;scroll-behavior:smooth}
+.banner::-webkit-scrollbar{display:none}
+.banner .slide{min-width:100%;scroll-snap-align:center;aspect-ratio:16/9;background:#222;position:relative;overflow:hidden}
+.banner .slide img{width:100%;height:100%;object-fit:cover}
+.banner .slide .ph{display:flex;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:14px}
+.dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:6px}
+.dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5)}
+.dots i.on{background:#fff;width:16px;border-radius:4px}
+.shop-head{padding:14px;background:#fff}
+.shop-head .n{font-size:20px;font-weight:800}
+.shop-head .meta{display:flex;gap:16px;margin-top:6px;color:#666;font-size:13px}
+.shop-head .meta b{color:var(--red)}
+.tabs{display:flex;gap:18px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);font-size:15px}
+.tabs span.on{color:var(--red);font-weight:700;border-bottom:2px solid var(--red);padding-bottom:4px}
+.tabs span{color:#666}
+.menu{display:grid;grid-template-columns:88px 1fr;min-height:70vh;background:#fff}
+.cat{padding:8px 0;border-right:1px solid var(--line);background:#fafafc}
+.cat .ci{padding:14px 8px;text-align:center;font-size:13px;color:#555;border-left:3px solid transparent}
+.cat .ci.on{background:#fff;color:var(--red);border-left-color:var(--red);font-weight:700}
+.dishes{padding:10px}
+.dish{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.dish:last-child{border-bottom:none}
+.dish .img{width:82px;height:82px;border-radius:10px;background:#f0f0f3;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
+.dish .img img{width:100%;height:100%;object-fit:cover}
+.dish .info{flex:1;min-width:0;display:flex;flex-direction:column}
+.dish .name{font-weight:600;font-size:15px}
+.dish .desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dish .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between}
+.price{color:var(--red);font-weight:700;font-size:16px}
+.price::before{content:"¥";font-size:12px;margin-right:1px}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:26px;height:26px;border-radius:50%;border:none;font-size:18px;line-height:1}
+.stepper .minus{background:#fff;border:1px solid var(--line);color:#999}
+.stepper .plus{background:var(--red);color:#fff}
+.stepper .n{min-width:18px;text-align:center;font-weight:600}
+.cartbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#2a2a2e;color:#fff;border-radius:18px 18px 0 0;display:flex;align-items:center;padding:8px 12px;z-index:30}
+.cartbar .cicon{width:48px;height:48px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;margin-top:-18px;border:3px solid #2a2a2e;font-size:22px;position:relative}
+.cartbar .cicon .badge{position:absolute;top:-4px;right:-4px;background:var(--yellow);color:#222;border-radius:999px;font-size:11px;padding:0 5px;font-weight:700}
+.cartbar .ctotal{flex:1;padding:0 10px}
+.cartbar .ctotal .t{font-size:16px;font-weight:700}
+.cartbar .ctotal .s{font-size:12px;color:#aaa}
+.cartbar .go{padding:10px 20px;border-radius:999px;background:var(--red);border:none;color:#fff;font-weight:700}
+.cartbar .go[disabled]{opacity:.5}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.mask.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:16px;max-height:85vh;overflow:auto;position:relative}
+.sheet.center{max-width:360px;border-radius:16px;margin:auto;align-self:center}
+.sheet h3{margin:0 0 10px}
+.sheet .close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:#999}
+.payopt{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap}
+.payopt .po{flex:1;min-width:120px;border:1.5px solid var(--line);border-radius:12px;padding:12px;text-align:center;font-weight:600;cursor:pointer}
+.payopt .po.on{border-color:var(--red);color:var(--red);background:#fff5f2}
+.payopt .po.dis{opacity:.4;cursor:not-allowed}
+.qrbox{display:flex;align-items:center;justify-content:center;margin:10px 0;min-height:200px;background:#fafafc;border-radius:12px}
+.qrbox img{max-width:220px;max-height:220px}
+.admin-top{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--red),var(--red-2));color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:16px}
+.admin-top .t{font-size:20px;font-weight:700}
+.admin-top .s{opacity:.9;font-size:13px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(12,1fr)}
+.grid .col-12{grid-column:span 12}.grid .col-6{grid-column:span 6}.grid .col-4{grid-column:span 4}.grid .col-3{grid-column:span 3}
+@media(max-width:760px){.grid .col-6,.grid .col-4,.grid .col-3{grid-column:span 12}}
+fieldset{border:1px solid var(--line);border-radius:12px;padding:12px;margin:0}
+legend{padding:0 6px;font-weight:600}
+label{display:block;font-size:13px;color:#555;margin:8px 0 4px}
+input[type=text],input[type=number],input[type=password],textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;background:#fff}
+textarea{min-height:60px;resize:vertical}
+.thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;background:#f2f2f5}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+th{color:#777;font-weight:500;background:#fafafc}
+.admin-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.admin-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-weight:600}
+.admin-tabs button.on{background:var(--red);color:#fff;border-color:var(--red)}
+.loginbox{max-width:380px;margin:60px auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.06)}
+.loginbox h2{margin:0 0 6px}
+.err{color:var(--red);font-size:13px;margin-top:6px;min-height:18px}
+.qr-card{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;background:#fff}
+.qr-card canvas,.qr-card img{margin:0 auto}
+.empty{text-align:center;color:var(--muted);padding:30px 0;font-size:14px}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:8px 14px;border-radius:8px;z-index:200;font-size:14px;opacity:0;transition:opacity .2s}
+.toast.show{opacity:1}
+.banner-list img{width:80px;height:45px;object-fit:cover;border-radius:6px}
+.cartlist .ci{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.cartlist .ci:last-child{border-bottom:none}
+.cartlist .ci .n{flex:1}
+.small{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* ================= Data layer ================= */
+const STORAGE_KEY = "rest_order_app_v1";
+const DEFAULT_DATA = {
+  admin: { username: "admin", password: "123456" },
+  shopName: "大茶缸麻辣烫·麻辣拌",
+  banners: [],
+  categories: [
+    { id: "c1", name: "热销" },
+    { id: "c2", name: "招牌麻辣烫" },
+    { id: "c3", name: "加点啥" }
+  ],
+  dishes: [
+    { id:"d1", cat:"c2", name:"十荤十素老式麻辣烫+面", desc:"十荤十素，经典东北口味，配手擀面一份。", price:22.99, img:"", tag:"门店销量第1名" },
+    { id:"d2", cat:"c2", name:"麻辣拌（中份）", desc:"自选麻辣拌，中份，可备注辣度。", price:18.8, img:"" },
+    { id:"d3", cat:"c3", name:"炸串拼盘", desc:"多种炸串小份拼盘，配秘制蘸料。", price:12.0, img:"" },
+    { id:"d4", cat:"c1", name:"冰粉（红糖）", desc:"解辣神器，手工冰粉配红糖浆。", price:6.0, img:"" }
+  ],
+  tables: [{ id:"t1", label:"1号桌" }],
+  payment: {
+    wechat: { enabled:false, label:"微信支付", img:"" },
+    alipay: { enabled:false, label:"支付宝", img:"" },
+    bank:   { enabled:false, label:"银行卡支付", tip:"" }
+  },
+  orders: []
+};
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return clone(DEFAULT_DATA);
+    const d = JSON.parse(raw);
+    return Object.assign(clone(DEFAULT_DATA), d);
+  }catch(e){ return clone(DEFAULT_DATA); }
+}
+let DB = loadData();
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); }
+
+/* ================= Helpers ================= */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+function el(h){const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstElementChild}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1800)}
+const uid = ()=>Math.random().toString(36).slice(2,9);
+const money = n=>"¥"+Number(n||0).toFixed(2);
+function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+function pickImage(){return new Promise(res=>{const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=()=>{const f=i.files[0];if(!f)return res(null);fileToDataURL(f).then(res)};i.click()})}
+
+/* ================= Routing ================= */
+function getRoute(){
+  const h = location.hash.replace(/^#/,"") || "/";
+  const [path, qs=""] = h.split("?");
+  const params = Object.fromEntries(new URLSearchParams(qs));
+  return { path, params };
+}
+function nav(path, params){
+  const qs = params && Object.keys(params).length ? "?"+new URLSearchParams(params).toString() : "";
+  location.hash = path + qs;
+}
+window.addEventListener("hashchange", render);
+window.addEventListener("DOMContentLoaded", render);
+
+/* ================= Render root ================= */
+function render(){
+  const app = $("#app");
+  const { path, params } = getRoute();
+  app.innerHTML = "";
+  if(path.startsWith("/order")) return renderCustomer(app, params.table);
+  if(path === "/admin/login" || path === "/admin") return renderAdmin(app);
+  // default landing: choose entry
+  renderLanding(app);
+}
+
+/* ---------- Landing entry ---------- */
+function renderLanding(app){
+  app.innerHTML = `
+  <div class="admin-container" style="padding-top:60px">
+    <div class="loginbox" style="max-width:420px;text-align:center">
+      <h2>扫码点餐系统</h2>
+      <p class="muted">请选择您的身份</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+        <button class="btn block" id="toAdmin">管理员登录</button>
+        <button class="btn ghost block" id="demo">模拟顾客点餐（示例桌号）</button>
+      </div>
+      <p class="small" style="margin-top:20px">提示：顾客通过扫描桌台上的二维码进入点餐页；管理员从这里输入账号密码进入后台。</p>
+    </div>
+  </div>`;
+  $("#toAdmin").onclick = ()=>nav("/admin");
+  $("#demo").onclick = ()=>nav("/order",{table:DB.tables[0]?.id||"t1"});
+}
+
+/* ================= Customer side ================= */
+let CART = {};   // { dishId: qty }
+let curCat = null;
+
+function renderCustomer(app, tableId){
+  CART = {};
+  const table = DB.tables.find(t=>t.id===tableId) || DB.tables[0] || {id:"x",label:"未指定桌号"};
+  curCat = DB.categories[0]?.id || null;
+
+  app.innerHTML = `
+  <div class="container" id="customerRoot">
+    <div class="topbar">
+      <button class="back" id="backHome" aria-label="back">‹</button>
+      <h1>${escapeHTML(DB.shopName)}</h1>
+      <button class="btn ghost sm" id="goAdmin">管理</button>
+    </div>
+
+    <div class="banner-wrap">
+      <div class="banner" id="banner"></div>
+      <div class="dots" id="dots"></div>
+    </div>
+
+    <div class="shop-head">
+      <div class="n">${escapeHTML(DB.shopName)}</div>
+      <div class="meta"><span>评分 <b>4.8</b></span><span>桌号 <b>${escapeHTML(table.label)}</b></span><span>营业中</span></div>
+    </div>
+
+    <div class="tabs">
+      <span class="on">点菜</span><span>评价</span><span>商家</span>
+    </div>
+
+    <div class="menu">
+      <div class="cat" id="cat"></div>
+      <div class="dishes" id="dishes"></div>
+    </div>
+
+    <div class="cartbar">
+      <div class="cicon">🛒<span class="badge" id="cartBadge" style="display:none">0</span></div>
+      <div class="ctotal">
+        <div class="t" id="cartTotal">${money(0)}</div>
+        <div class="s" id="cartHint">购物车是空的</div>
+      </div>
+      <button class="go" id="confirmBtn" disabled>去结算</button>
+    </div>
+  </div>`;
+
+  renderBanner();
+  renderCats();
+  renderDishes();
+  updateCartBar();
+
+  $("#backHome").onclick = ()=>{ location.hash="/"; };
+  $("#goAdmin").onclick = ()=>nav("/admin");
+  $("#confirmBtn").onclick = openConfirm;
+
+  // category click scrolls
+  $("#cat").addEventListener("click", e=>{
+    const ci = e.target.closest(".ci"); if(!ci) return;
+    curCat = ci.dataset.id;
+    renderCats();
+    const target = document.getElementById("cat-"+curCat);
+    if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+  // auto highlight category while scrolling - container scrolls
+  const root = $("#customerRoot");
+  root.addEventListener("scroll", ()=>{
+    const groups = $$(".cat-group", $("#dishes"));
+    let cur = groups[0]?.dataset.id;
+    for(const g of groups){
+      const r = g.getBoundingClientRect();
+      const top = r.top - root.getBoundingClientRect().top;
+      if(top < 120) cur = g.dataset.id;
+    }
+    if(cur && cur !== curCat){ curCat = cur; renderCats(); }
+  });
+}
+
+function renderBanner(){
+  const b = $("#banner"), d = $("#dots");
+  if(!DB.banners.length){
+    b.innerHTML = `<div class="slide"><div class="ph">商家尚未添加宣传图</div></div>`;
+    d.innerHTML=""; return;
+  }
+  b.innerHTML = DB.banners.map(u=>`<div class="slide"><img src="${u}" alt="banner"/></div>`).join("");
+  d.innerHTML = DB.banners.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join("");
+  let idx=0;
+  clearInterval(b._t);
+  if(DB.banners.length>1){
+    b._t = setInterval(()=>{
+      idx=(idx+1)%DB.banners.length;
+      b.children[idx].scrollIntoView({behavior:"smooth", inline:"start", block:"nearest"});
+      $$("i", d).forEach((el,i)=>el.classList.toggle("on", i===idx));
+    }, 3500);
+    b.addEventListener("scroll", ()=>{
+      const i = Math.round(b.scrollLeft / b.clientWidth);
+      if(i!==idx){ idx=i; $$("i", d).forEach((el,j)=>el.classList.toggle("on", j===i)); }
+    });
+  }
+}
+function renderCats(){
+  const c = $("#cat");
+  c.innerHTML = DB.categories.map(cat=>`<div class="ci ${cat.id===curCat?'on':''}" data-id="${cat.id}">${escapeHTML(cat.name)}</div>`).join("");
+}
+function renderDishes(){
+  const d = $("#dishes"); d.innerHTML="";
+  for(const cat of DB.categories){
+    const dishes = DB.dishes.filter(x=>x.cat===cat.id);
+    const g = el(`<div class="cat-group" id="cat-${cat.id}" data-id="${cat.id}"></div>`);
+    g.innerHTML = `<div style="font-weight:700;margin:4px 0 8px">${escapeHTML(cat.name)}</div>` +
+      (dishes.length ? dishes.map(dishHTML).join("") : `<div class="empty">暂无菜品</div>`);
+    d.appendChild(g);
+  }
+  d.addEventListener("click", onDishClick);
+}
+function dishHTML(d){
+  const img = d.img ? `<img src="${d.img}" alt="${escapeHTML(d.name)}"/>` : `暂无图片`;
+  return `<div class="dish" data-id="${d.id}">
+    <div class="img">${img}</div>
+    <div class="info">
+      <div class="name">${escapeHTML(d.name)}${d.tag?`<span class="tag" style="margin-left:6px">${escapeHTML(d.tag)}</span>`:""}</div>
+      <div class="desc">${escapeHTML(d.desc||"")}</div>
+      <div class="foot">
+        <div class="price">${Number(d.price).toFixed(2)}</div>
+        <div class="stepper" data-id="${d.id}">
+          <button class="minus" data-a="minus" style="display:none">−</button>
+          <span class="n" style="display:none">0</span>
+          <button class="plus" data-a="plus">+</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function onDishClick(e){
+  const btn = e.target.closest("button[data-a]"); if(!btn) return;
+  const id = btn.parentElement.dataset.id;
+  const cur = CART[id]||0;
+  const next = btn.dataset.a==="plus" ? cur+1 : Math.max(0, cur-1);
+  if(next===0) delete CART[id]; else CART[id]=next;
+  updateStepper(id);
+  updateCartBar();
+}
+function updateStepper(id){
+  const n = CART[id]||0;
+  const st = $(`.stepper[data-id="${id}"]`); if(!st) return;
+  const minus=$(".minus",st), num=$(".n",st);
+  if(n>0){ minus.style.display=""; num.style.display=""; num.textContent=n; }
+  else { minus.style.display="none"; num.style.display="none"; }
+}
+function cartTotals(){
+  let count=0, total=0;
+  for(const [id,q] of Object.entries(CART)){
+    const d = DB.dishes.find(x=>x.id===id); if(!d) continue;
+    count += q; total += q*d.price;
+  }
+  return {count,total};
+}
+function updateCartBar(){
+  const {count,total} = cartTotals();
+  const badge=$("#cartBadge"), tot=$("#cartTotal"), hint=$("#cartHint"), go=$("#confirmBtn");
+  if(count>0){ badge.style.display=""; badge.textContent=count; hint.textContent=`共 ${count} 件`; go.disabled=false; }
+  else { badge.style.display="none"; hint.textContent="购物车是空的"; go.disabled=true; }
+  tot.textContent = money(total);
+}
+
+/* -------- Customer confirm & payment -------- */
+function openConfirm(){
+  const {count,total}=cartTotals();
+  const items = Object.entries(CART).map(([id,q])=>{
+    const d = DB.dishes.find(x=>x.id===id);
+    return `<div class="ci"><div class="n">${escapeHTML(d.name)}<div class="small">×${q}</div></div><div>${money(d.price*q)}</div></div>`;
+  }).join("");
+  const tableId = (getRoute().params.table) || (DB.tables[0]?.id);
+  const table = DB.tables.find(t=>t.id===tableId)||{label:"未指定桌号"};
+  showSheet(`<button class="close" data-close>×</button>
+    <h3>确认订单</h3>
+    <div class="small">桌号：${escapeHTML(table.label)}</div>
+    <div class="cartlist" style="margin-top:8px">${items}</div>
+    <div class="sep"></div>
+    <div class="row"><div class="grow">合计</div><div class="price">${total.toFixed(2)}</div></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn gray grow" data-close>返回修改</button>
+      <button class="btn grow" id="payBtn">去支付 ${money(total)}</button>
+    </div>`);
+  $("#payBtn").onclick = openPayment;
+}
+
+function openPayment(){
+  closeSheet();
+  const methods = [
+    {key:"wechat",label:DB.payment.wechat.label||"微信支付"},
+    {key:"alipay",label:DB.payment.alipay.label||"支付宝"},
+    {key:"bank",  label:DB.payment.bank.label||"银行卡"}
+  ];
+  const opts = methods.map(m=>{
+    const on = !!DB.payment[m.key].enabled;
+    return `<div class="po ${on?'':'dis'}" data-m="${m.key}">${escapeHTML(m.label)}${on?'':'<div class="small">未启用</div>'}</div>`;
+  }).join("");
+  showSheet(`<button class="close" data-close>×</button>
+    <h3>选择支付方式</h3>
+    <div class="payopt">${opts}</div>
+    <div id="payArea" class="qrbox"><span class="muted">请选择上方支付方式</span></div>
+    <div class="small" style="text-align:center">完成支付后请告知服务员或返回点餐页</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn gray grow" data-close>取消</button>
+      <button class="btn green grow" id="finishBtn">我已完成支付</button>
+    </div>`);
+  $$(".po").forEach(p=>{
+    p.onclick = ()=>{
+      $$(".po").forEach(x=>x.classList.remove("on"));
+      p.classList.add("on");
+      showPayMethod(p.dataset.m);
+    };
+  });
+  $("#finishBtn").onclick = ()=>{
+    // save order
+    const {count,total}=cartTotals();
+    const tableId = getRoute().params.table || DB.tables[0]?.id;
+    DB.orders.unshift({id:uid(),time:Date.now(),table:tableId,items:Object.entries(CART).map(([id,q])=>({id,q,name:DB.dishes.find(d=>d.id===id)?.name,price:DB.dishes.find(d=>d.id===id)?.price})),total});
+    saveData();
+    closeSheet();
+    toast("订单已提交，请出示给服务员确认");
+    CART={}; updateCartBar(); renderDishes();
+  };
+}
+function showPayMethod(key){
+  const area = $("#payArea");
+  const m = DB.payment[key];
+  if(!m || !m.enabled){ area.innerHTML = `<span class="muted">该支付方式暂未开启</span>`; return; }
+  if(key==="bank"){
+    area.innerHTML = `<div style="padding:10px;text-align:center">${escapeHTML(m.tip||"管理员未配置银行卡支付信息")}</div>`;
+    return;
+  }
+  if(!m.img){ area.innerHTML = `<span class="muted">管理员未上传收款二维码</span>`; return; }
+  area.innerHTML = `<img src="${m.img}" alt="pay"/>`;
+}
+
+/* -------- sheet helper -------- */
+function showSheet(innerHtml){
+  let mask = $("#sheetMask");
+  if(!mask){
+    mask = el(`<div class="mask" id="sheetMask"><div class="sheet"></div></div>`);
+    document.body.appendChild(mask);
+    mask.addEventListener("click", e=>{ if(e.target===mask) closeSheet(); });
+  }
+  $(".sheet", mask).innerHTML = innerHtml;
+  mask.classList.add("show");
+  // close buttons
+  $$("[data-close]", mask).forEach(b=>b.onclick=closeSheet);
+}
+function closeSheet(){ const m=$("#sheetMask"); if(m)m.classList.remove("show"); }
+
+function escapeHTML(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+/* ================= Admin side ================= */
+let ADMIN_TAB = "dishes";
+let LOGGED = sessionStorage.getItem("admin_logged")==="1";
+
+function renderAdmin(app){
+  if(!LOGGED) return renderAdminLogin(app);
+  app.innerHTML = `
+  <div class="admin-container">
+    <div class="admin-top">
+      <div><div class="t">${escapeHTML(DB.shopName)} · 管理后台</div><div class="s">扫码点餐管理 · ${new Date().toLocaleDateString()}</div></div>
+      <div><button class="btn ghost sm" id="logoutBtn" style="background:rgba(255,255,255,.18);color:#fff;border:none">退出登录</button></div>
+    </div>
+    <div class="admin-tabs" id="atabs">
+      ${["dishes","categories","tables","banners","payment","settings","orders"].map(t=>{
+        const names={dishes:"菜品管理",categories:"菜品分类",tables:"桌号二维码",banners:"宣传图",payment:"支付设置",settings:"账号设置",orders:"订单"};
+        return `<button data-t="${t}" class="${t===ADMIN_TAB?'on':''}">${names[t]}</button>`;
+      }).join("")}
+    </div>
+    <div id="apanel"></div>
+  </div>`;
+  $("#logoutBtn").onclick = ()=>{ sessionStorage.removeItem("admin_logged"); LOGGED=false; renderAdmin($("#app")); };
+  $("#atabs").addEventListener("click", e=>{
+    const b = e.target.closest("button[data-t]"); if(!b) return;
+    ADMIN_TAB = b.dataset.t; renderAdmin($("#app"));
+  });
+  const panel = $("#apanel");
+  if(ADMIN_TAB==="dishes") adminDishes(panel);
+  if(ADMIN_TAB==="categories") adminCategories(panel);
+  if(ADMIN_TAB==="tables") adminTables(panel);
+  if(ADMIN_TAB==="banners") adminBanners(panel);
+  if(ADMIN_TAB==="payment") adminPayment(panel);
+  if(ADMIN_TAB==="settings") adminSettings(panel);
+  if(ADMIN_TAB==="orders") adminOrders(panel);
+}
+
+/* ----- Login ----- */
+function renderAdminLogin(app){
+  app.innerHTML = `
+  <div class="admin-container">
+    <div class="loginbox">
+      <h2>管理员登录</h2>
+      <p class="muted">输入账号密码进入后台</p>
+      <label>账号</label>
+      <input id="u" type="text" placeholder="账号" autocomplete="username"/>
+      <label>密码</label>
+      <input id="p" type="password" placeholder="密码" autocomplete="current-password"/>
+      <div class="err" id="lerr"></div>
+      <button class="btn block" id="login" style="margin-top:10px">登录</button>
+      <div class="small" style="margin-top:12px">默认账号：admin / 密码：123456（可在设置中修改）</div>
+      <div style="margin-top:10px"><button class="btn ghost sm" id="back">返回首页</button></div>
+    </div>
+  </div>`;
+  $("#back").onclick = ()=>location.hash="/";
+  $("#login").onclick = doLogin;
+  $("#p").addEventListener("keydown", e=>{if(e.key==="Enter")doLogin()});
+  $("#u").addEventListener("keydown", e=>{if(e.key==="Enter")$("#p").focus()});
+  function doLogin(){
+    const u=$("#u").value.trim(), p=$("#p").value;
+    const err=$("#lerr");
+    if(!u) return err.textContent="请输入账号";
+    if(!p) return err.textContent="请输入密码";
+    if(u!==DB.admin.username) return err.textContent="账号不存在，请检查账号";
+    if(p!==DB.admin.password) return err.textContent="密码错误，请重新输入";
+    err.textContent="";
+    LOGGED=true; sessionStorage.setItem("admin_logged","1");
+    toast("登录成功");
+    renderAdmin($("#app"));
+  }
+}
+
+/* ----- Dishes ----- */
+function adminDishes(panel){
+  panel.innerHTML = `
+  <div class="grid">
+    <div class="col-4">
+      <div class="card">
+        <h3 style="margin-top:0">${editingDish?'编辑菜品':'新增菜品'}</h3>
+        <div class="row">
+          <img id="dp" class="thumb" src="${editingDish?.img||''}" onerror="this.style.visibility='hidden'"/>
+          <button class="btn gray sm" id="pickImg">${editingDish?.img?'更换图片':'上传图片'}</button>
+        </div>
+        <label>菜名</label><input id="dn" type="text" placeholder="例如：十荤十素老式麻辣烫"/>
+        <label>描述</label><textarea id="dd" placeholder="菜品简介、口味提示"></textarea>
+        <div class="row">
+          <div class="grow"><label>价格(元)</label><input id="dpr" type="number" min="0" step="0.01"/></div>
+          <div class="grow"><label>分类</label><select id="dc">${DB.categories.map(c=>`<option value="${c.id}">${escapeHTML(c.name)}</option>`).join("")}</select></div>
+        </div>
+        <label>标签（可选）</label><input id="dt" type="text" placeholder="例如：门店销量第1名"/>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn grow" id="saveD">保存</button>
+          <button class="btn gray" id="cancelD" style="${editingDish?'':'display:none'}">取消</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-8">
+      <div class="card"><h3 style="margin-top:0">菜品列表</h3>
+        <table><thead><tr><th>图片</th><th>菜名</th><th>分类</th><th>价格</th><th></th></tr></thead><tbody id="drows"></tbody></table>
+      </div>
+    </div>
+  </div>`;
+  if(editingDish){
+    $("#dn").value=editingDish.name; $("#dd").value=editingDish.desc||""; $("#dpr").value=editingDish.price;
+    $("#dc").value=editingDish.cat; $("#dt").value=editingDish.tag||"";
+    if(editingDish.img) $("#dp").style.visibility="";
+  }
+  $("#pickImg").onclick = async ()=>{
+    const d = await pickImage(); if(!d) return;
+    dishImgData=d; $("#dp").src=d; $("#dp").style.visibility="";
+  };
+  $("#cancelD").onclick = ()=>{ editingDish=null; dishImgData=null; adminDishes(panel); };
+  $("#saveD").onclick = ()=>{
+    const name=$("#dn").value.trim(), desc=$("#dd").value.trim(), price=parseFloat($("#dpr").value), cat=$("#dc").value, tag=$("#dt").value.trim();
+    if(!name) return toast("请填写菜名");
+    if(!(price>=0)) return toast("请填写有效价格");
+    if(editingDish){
+      Object.assign(editingDish,{name,desc,price,cat,tag,img:dishImgData||editingDish.img});
+      toast("已更新");
+    }else{
+      DB.dishes.push({id:uid(),name,desc,price,cat,tag,img:dishImgData||""});
+      toast("已添加");
+    }
+    saveData(); editingDish=null; dishImgData=null;
+    adminDishes(panel);
+  };
+  drawDishesTable();
+}
+let editingDish=null, dishImgData=null;
+function drawDishesTable(){
+  const tb=$("#drows"); if(!tb)return;
+  if(!DB.dishes.length){ tb.innerHTML=`<tr><td colspan="5" class="empty">暂无菜品</td></tr>`; return; }
+  tb.innerHTML = DB.dishes.map(d=>{
+    const cat=DB.categories.find(c=>c.id===d.cat)?.name||"-";
+    const img=d.img?`<img src="${d.img}" class="thumb"/>`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:#bbb">无</div>`;
+    return `<tr><td>${img}</td><td>${escapeHTML(d.name)}${d.tag?`<span class="tag" style="margin-left:6px">${escapeHTML(d.tag)}</span>`:""}<div class="small">${escapeHTML(d.desc||"")}</div></td><td>${escapeHTML(cat)}</td><td>${money(d.price)}</td>
+    <td><button class="btn ghost sm" data-edit="${d.id}">编辑</button> <button class="btn gray sm" data-del="${d.id}">删除</button></td></tr>`;
+  }).join("");
+  tb.addEventListener("click", e=>{
+    const ed=e.target.dataset.edit, dl=e.target.dataset.del;
+    if(ed){ editingDish=DB.dishes.find(x=>x.id===ed); dishImgData=editingDish.img; adminDishes($("#apanel")); }
+    if(dl){ if(confirm("确认删除该菜品？")){ DB.dishes=DB.dishes.filter(x=>x.id!==dl); saveData(); adminDishes($("#apanel")); } }
+  },{once:true});
+}
+
+/* ----- Categories ----- */
+function adminCategories(panel){
+  panel.innerHTML = `<div class="card">
+    <h3 style="margin-top:0">菜品分类</h3>
+    <div class="row"><input id="cn" type="text" placeholder="新分类名称" class="grow"/><button class="btn" id="addC">添加</button></div>
+    <table style="margin-top:10px"><thead><tr><th>名称</th><th>菜品数</th><th></th></tr></thead><tbody id="crows"></tbody></table>
+  </div>`;
+  drawCats();
+  $("#addC").onclick = ()=>{
+    const n=$("#cn").value.trim(); if(!n) return toast("请输入名称");
+    DB.categories.push({id:uid(),name:n}); saveData(); $("#cn").value=""; drawCats();
+  };
+}
+function drawCats(){
+  const tb=$("#crows"); if(!tb)return;
+  tb.innerHTML = DB.categories.map(c=>{
+    const cnt=DB.dishes.filter(d=>d.cat===c.id).length;
+    return `<tr><td><input type="text" value="${escapeHTML(c.name)}" data-id="${c.id}" class="cn"/></td><td>${cnt}</td>
+    <td><button class="btn gray sm" data-up="${c.id}">上移</button> <button class="btn gray sm" data-down="${c.id}">下移</button> <button class="btn ghost sm" data-del="${c.id}">删除</button></td></tr>`;
+  }).join("");
+  tb.addEventListener("change", e=>{ if(e.target.classList.contains("cn")){const c=DB.categories.find(x=>x.id===e.target.dataset.id);c.name=e.target.value.trim()||c.name;saveData()}},{once:true});
+  tb.addEventListener("click", e=>{
+    const up=e.target.dataset.up, dn=e.target.dataset.down, dl=e.target.dataset.del;
+    const i=DB.categories.findIndex(c=>c.id===(up||dn||dl)); if(i<0)return;
+    if(dl){
+      if(DB.dishes.some(d=>d.cat===dl)) return toast("该分类下还有菜品，无法删除");
+      if(!confirm("删除该分类？"))return;
+      DB.categories.splice(i,1); saveData();
+    }
+    if(up && i>0){ [DB.categories[i-1],DB.categories[i]]=[DB.categories[i],DB.categories[i-1]]; saveData(); }
+    if(dn && i<DB.categories.length-1){ [DB.categories[i+1],DB.categories[i]]=[DB.categories[i],DB.categories[i+1]]; saveData(); }
+    drawCats();
+  },{once:true});
+}
+
+/* ----- Tables / QR ----- */
+function adminTables(panel){
+  panel.innerHTML = `<div class="grid">
+    <div class="col-4">
+      <div class="card">
+        <h3 style="margin-top:0">新增桌号二维码</h3>
+        <label>桌号/编号（可自定义）</label>
+        <input id="tl" type="text" placeholder="例如：2号桌"/>
+        <button class="btn block" id="addT" style="margin-top:10px">生成二维码</button>
+        <p class="small">生成后顾客扫码将自动进入该桌号的点餐页面。二维码编码的是该页面的访问链接，可打印贴在桌台上。</p>
+        <p class="small" id="curHost">当前链接前缀：${location.origin+location.pathname}</p>
+      </div>
+    </div>
+    <div class="col-8">
+      <div class="card"><h3 style="margin-top:0">桌号二维码管理</h3>
+        <div class="grid" id="tgrid"></div>
+      </div>
+    </div>
+  </div>`;
+  $("#addT").onclick = ()=>{
+    const l=$("#tl").value.trim(); if(!l) return toast("请输入桌号");
+    DB.tables.push({id:uid(),label:l}); saveData(); $("#tl").value=""; drawTables();
+  };
+  drawTables();
+}
+function drawTables(){
+  const g=$("#tgrid"); if(!g)return;
+  if(!DB.tables.length){ g.innerHTML=`<div class="empty col-12">暂无桌号</div>`; return; }
+  g.innerHTML = DB.tables.map(t=>`
+    <div class="col-4">
+      <div class="qr-card">
+        <div style="font-weight:700;margin-bottom:6px">${escapeHTML(t.label)}</div>
+        <div id="qr-${t.id}"></div>
+        <div class="small" style="word-break:break-all">${tableLink(t.id)}</div>
+        <div style="display:flex;gap:6px;margin-top:8px;justify-content:center">
+          <button class="btn ghost sm" data-ren="${t.id}">重命名</button>
+          <button class="btn gray sm" data-dl="${t.id}">下载</button>
+          <button class="btn ghost sm" data-dt="${t.id}">删除</button>
+        </div>
+      </div>
+    </div>`).join("");
+  DB.tables.forEach(t=>{
+    const holder = $("#qr-"+t.id); holder.innerHTML="";
+    new QRCode(holder,{text:tableLink(t.id),width:140,height:140,correctLevel:QRCode.CorrectLevel.M});
+  });
+  g.addEventListener("click", e=>{
+    const rn=e.target.dataset.ren, dl=e.target.dataset.dl, dt=e.target.dataset.dt;
+    if(rn){ const t=DB.tables.find(x=>x.id===rn); const n=prompt("修改桌号名称",t.label); if(n){t.label=n.trim()||t.label;saveData();drawTables()} }
+    if(dl){
+      const t=DB.tables.find(x=>x.id===dl);
+      const canvas=$("#qr-"+t.id+" canvas")||$("#qr-"+t.id+" img");
+      const a=document.createElement("a"); a.href=canvas.src||canvas.toDataURL("image/png"); a.download=t.label+".png"; a.click();
+    }
+    if(dt){ if(confirm("确认删除该桌号二维码？")){DB.tables=DB.tables.filter(x=>x.id!==dt);saveData();drawTables()} }
+  },{once:true});
+}
+function tableLink(id){ return location.origin+location.pathname+"#/order?table="+id; }
+
+/* ----- Banners ----- */
+function adminBanners(panel){
+  panel.innerHTML = `<div class="card">
+    <h3 style="margin-top:0">顶部宣传图</h3>
+    <p class="small">顾客进入点餐页后顶部轮播展示，可添加多张，左右划动查看。</p>
+    <button class="btn" id="addB">上传宣传图</button>
+    <table class="banner-list" style="margin-top:10px"><thead><tr><th>图片</th><th>顺序</th><th></th></tr></thead><tbody id="brows"></tbody></table>
+  </div>`;
+  $("#addB").onclick = async ()=>{ const d=await pickImage(); if(!d)return; DB.banners.push(d); saveData(); drawB(); };
+  drawB();
+}
+function drawB(){
+  const tb=$("#brows"); if(!tb)return;
+  if(!DB.banners.length){ tb.innerHTML=`<tr><td colspan="3" class="empty">暂无宣传图</td></tr>`; return; }
+  tb.innerHTML = DB.banners.map((u,i)=>`<tr>
+    <td><img src="${u}"/></td>
+    <td>${i+1}</td>
+    <td><button class="btn gray sm" data-up="${i}">上移</button>
+        <button class="btn gray sm" data-dn="${i}">下移</button>
+        <button class="btn ghost sm" data-dl="${i}">删除</button></td></tr>`).join("");
+  tb.addEventListener("click", e=>{
+    const up=e.target.dataset.up, dn=e.target.dataset.dn, dl=e.target.dataset.dl;
+    const i = (up!==undefined)?+up:(dn!==undefined)?+dn:(dl!==undefined?+dl:-1); if(i<0) return;
+    if(up!==undefined && i>0){ [DB.banners[i-1],DB.banners[i]]=[DB.banners[i],DB.banners[i-1]]; }
+    if(dn!==undefined && i<DB.banners.length-1){ [DB.banners[i+1],DB.banners[i]]=[DB.banners[i],DB.banners[i+1]]; }
+    if(dl!==undefined){ DB.banners.splice(i,1); }
+    saveData(); drawB();
+  },{once:true});
+}
+
+/* ----- Payment ----- */
+function adminPayment(panel){
+  panel.innerHTML = `
+  <div class="card">
+    <h3 style="margin-top:0">顾客支付方式</h3>
+    <p class="small">顾客点击"确定"后弹出支付方式选择。您可以为每种方式上传收款二维码（例如微信/支付宝收款码），未启用或未上传时顾客端显示空白提示。</p>
+    ${payBlock("wechat","微信支付",true)}
+    ${payBlock("alipay","支付宝",true)}
+    ${payBlock("bank","银行卡支付",false)}
+  </div>`;
+  $$(".pay-block").forEach(block=>{
+    const key = block.dataset.key;
+    const en = $("#"+key+"_en");
+    en.checked = !!DB.payment[key].enabled;
+    block.addEventListener("change", ()=>{
+      DB.payment[key].enabled = en.checked;
+      saveData();
+    });
+    $("#"+key+"_lbl").addEventListener("change", e=>{ DB.payment[key].label=e.target.value.trim()||DB.payment[key].label; saveData(); });
+    if(key!=="bank"){
+      $("#"+key+"_up").onclick = async ()=>{ const d=await pickImage(); if(!d)return; DB.payment[key].img=d; $("#"+key+"_img").src=d; saveData(); toast("已更新收款码"); };
+      $("#"+key+"_clr").onclick = ()=>{ DB.payment[key].img=""; $("#"+key+"_img").src=""; saveData(); };
+      if(DB.payment[key].img) $("#"+key+"_img").src=DB.payment[key].img;
+    }else{
+      const tip=$("#"+key+"_tip"); if(tip) { tip.value=DB.payment.bank.tip||""; tip.addEventListener("change",()=>{DB.payment.bank.tip=tip.value;saveData()}); }
+    }
+  });
+}
+function payBlock(key,label,qr){
+  return `<fieldset class="pay-block" data-key="${key}" style="margin-top:10px">
+    <legend><label style="display:inline;margin:0"><input type="checkbox" id="${key}_en"/> 启用${label}</label></legend>
+    <label>显示名称</label><input id="${key}_lbl" type="text" value="${escapeHTML(DB.payment[key].label||label)}"/>
+    ${qr?`<div class="row" style="margin-top:8px">
+      <img id="${key}_img" class="thumb" src="" onerror="this.style.visibility='hidden'"/>
+      <button class="btn gray sm" id="${key}_up">上传收款二维码</button>
+      <button class="btn ghost sm" id="${key}_clr">清除</button>
+    </div>`:`<label>提示文字</label><textarea id="${key}_tip" placeholder="例如：请联系服务员使用POS机刷卡，或通过银行转账至..."></textarea>`}
+  </fieldset>`;
+}
+
+/* ----- Settings ----- */
+function adminSettings(panel){
+  panel.innerHTML = `<div class="card" style="max-width:520px">
+    <h3 style="margin-top:0">店铺与账号设置</h3>
+    <label>店铺名称</label><input id="sn" type="text" value="${escapeHTML(DB.shopName)}"/>
+    <div class="sep"></div>
+    <h3>修改账号密码</h3>
+    <label>新账号</label><input id="nu" type="text" value="${escapeHTML(DB.admin.username)}" autocomplete="username"/>
+    <label>新密码</label><input id="np" type="password" placeholder="留空则不修改" autocomplete="new-password"/>
+    <label>确认新密码</label><input id="np2" type="password" placeholder="再次输入新密码"/>
+    <label class="small" style="color:#999">需要验证当前密码才能保存：</label>
+    <label>当前密码</label><input id="op" type="password" autocomplete="current-password"/>
+    <div class="err" id="serr"></div>
+    <button class="btn" id="saveS" style="margin-top:10px">保存设置</button>
+    <button class="btn ghost" id="reset" style="margin-top:10px">清空所有数据（恢复默认）</button>
+  </div>`;
+  $("#saveS").onclick = ()=>{
+    const sn=$("#sn").value.trim(), nu=$("#nu").value.trim(), np=$("#np").value, np2=$("#np2").value, op=$("#op").value;
+    const err=$("#serr"); err.textContent="";
+    if(!sn) return err.textContent="店铺名称不能为空";
+    if(!nu) return err.textContent="账号不能为空";
+    if(op !== DB.admin.password) return err.textContent="当前密码错误，无法修改账号设置";
+    if(np || np2){ if(np!==np2) return err.textContent="两次输入的新密码不一致"; if(np.length<4) return err.textContent="新密码至少4位"; DB.admin.password=np; }
+    DB.shopName=sn; DB.admin.username=nu; saveData();
+    err.style.color="var(--green)"; err.textContent="已保存";
+    setTimeout(()=>err.textContent="",1500);
+  };
+  $("#reset").onclick = ()=>{
+    if(!confirm("将清空所有菜品、分类、桌号、宣传图与设置，恢复默认。确定？")) return;
+    localStorage.removeItem(STORAGE_KEY); DB=loadData(); saveData(); toast("已重置"); renderAdmin($("#app"));
+  };
+}
+
+/* ----- Orders ----- */
+function adminOrders(panel){
+  panel.innerHTML = `<div class="card"><h3 style="margin-top:0">订单记录</h3>
+    ${DB.orders.length?`<table><thead><tr><th>时间</th><th>桌号</th><th>明细</th><th>金额</th></tr></thead><tbody>
+    ${DB.orders.map(o=>`<tr><td>${new Date(o.time).toLocaleString()}</td>
+      <td>${escapeHTML(DB.tables.find(t=>t.id===o.table)?.label||o.table)}</td>
+      <td>${o.items.map(i=>`${escapeHTML(i.name)}×${i.q}`).join("，")}</td>
+      <td>${money(o.total)}</td></tr>`).join("")}
+    </tbody></table>`:`<div class="empty">暂无订单</div>`}
+    ${DB.orders.length?`<button class="btn gray sm" id="clro" style="margin-top:10px">清空记录</button>`:""}
+  </div>`;
+  const b=$("#clro"); if(b) b.onclick=()=>{if(confirm("清空所有订单记录？")){DB.orders=[];saveData();adminOrders(panel)}};
+}
+
+</script>
+</body>
+</html>
+
