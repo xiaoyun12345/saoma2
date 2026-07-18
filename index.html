@@ -16,7 +16,7 @@ button{font-family:inherit;cursor:pointer}
 input,textarea,select{font-family:inherit}
 img{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
-.container{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;padding-bottom:72px}
+.container{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;padding-bottom:72px}
 .admin-container{max-width:960px;margin:0 auto;padding:16px;padding-bottom:40px}
 .topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:10px 12px;display:flex;align-items:center;gap:10px}
 .topbar .back{width:34px;height:34px;border-radius:50%;border:none;background:#f2f2f5;font-size:18px}
@@ -38,13 +38,28 @@ a{color:inherit;text-decoration:none}
 .banner-wrap{position:relative;background:#000;overflow:hidden}
 .banner{display:flex;scroll-snap-type:x mandatory;overflow-x:auto;scroll-behavior:smooth}
 .banner::-webkit-scrollbar{display:none}
-.banner .slide{min-width:100%;scroll-snap-align:center;aspect-ratio:16/9;background:#222;position:relative;overflow:hidden}
+.banner .slide{min-width:100%;scroll-snap-align:center;aspect-ratio:5/3;background:#222;position:relative;overflow:hidden}
 .banner .slide img{width:100%;height:100%;object-fit:cover}
 .banner .slide .ph{display:flex;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:14px}
 .dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:6px}
 .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5)}
 .dots i.on{background:#fff;width:16px;border-radius:4px}
-.shop-head{padding:14px;background:#fff}
+.shop-head{padding:14px 14px 12px;background:linear-gradient(180deg,#fff7f2 0%,#fff 60%);border-bottom:1px solid var(--line)}
+.shop-head .top{display:flex;gap:10px;align-items:flex-start}
+.shop-head .logo{width:56px;height:56px;border-radius:10px;background:#fff2ec url("data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><text x=%2232%22 y=%2240%22 font-size=%2234%22 text-anchor=%22middle%22>🍜</text></svg>") center/cover no-repeat;border:1px solid #ffd9c6;flex-shrink:0}
+.shop-head .nwrap{flex:1;min-width:0}
+.shop-head .badge{display:inline-block;background:#2fbc49;color:#fff;font-size:11px;padding:1px 6px;border-radius:4px;margin-right:6px;vertical-align:middle}
+.shop-head .n{font-size:20px;font-weight:800;line-height:1.2}
+.shop-head .meta{display:flex;gap:14px;margin-top:6px;color:#666;font-size:12px;flex-wrap:wrap}
+.shop-head .meta b{color:#333;font-weight:600}
+.shop-head .meta .star{color:#ff9a00}
+.promo{display:flex;gap:8px;padding:8px 14px 10px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
+.promo::-webkit-scrollbar{display:none}
+.promo .coupon{flex-shrink:0;border:1px dashed #ffb199;color:var(--red);border-radius:6px;padding:4px 8px;font-size:12px;background:#fff5f2}
+.tabs{display:flex;gap:18px;padding:8px 14px 0;background:#fff;border-bottom:1px solid var(--line);font-size:15px}
+.tabs span.on{color:var(--red);font-weight:700;border-bottom:2px solid var(--red);padding:8px 0}
+.tabs span{color:#666;padding:8px 0}
+.tips{text-align:center;color:#bbb;font-size:12px;padding:8px 0;background:#fff}
 .shop-head .n{font-size:20px;font-weight:800}
 .shop-head .meta{display:flex;gap:16px;margin-top:6px;color:#666;font-size:13px}
 .shop-head .meta b{color:var(--red)}
@@ -56,9 +71,9 @@ a{color:inherit;text-decoration:none}
 .cat .ci{padding:14px 8px;text-align:center;font-size:13px;color:#555;border-left:3px solid transparent}
 .cat .ci.on{background:#fff;color:var(--red);border-left-color:var(--red);font-weight:700}
 .dishes{padding:10px}
-.dish{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.dish{display:flex;gap:10px;padding:12px 0;border-bottom:1px dashed var(--line)}
 .dish:last-child{border-bottom:none}
-.dish .img{width:82px;height:82px;border-radius:10px;background:#f0f0f3;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
+.dish .img{width:88px;height:88px;border-radius:10px;background:#f0f0f3;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
 .dish .img img{width:100%;height:100%;object-fit:cover}
 .dish .info{flex:1;min-width:0;display:flex;flex-direction:column}
 .dish .name{font-weight:600;font-size:15px}
@@ -71,7 +86,7 @@ a{color:inherit;text-decoration:none}
 .stepper .minus{background:#fff;border:1px solid var(--line);color:#999}
 .stepper .plus{background:var(--red);color:#fff}
 .stepper .n{min-width:18px;text-align:center;font-weight:600}
-.cartbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#2a2a2e;color:#fff;border-radius:18px 18px 0 0;display:flex;align-items:center;padding:8px 12px;z-index:30}
+.cartbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#2a2a2e;color:#fff;border-radius:18px 18px 0 0;display:flex;align-items:center;padding:8px 12px;z-index:30}
 .cartbar .cicon{width:48px;height:48px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;margin-top:-18px;border:3px solid #2a2a2e;font-size:22px;position:relative}
 .cartbar .cicon .badge{position:absolute;top:-4px;right:-4px;background:var(--yellow);color:#222;border-radius:999px;font-size:11px;padding:0 5px;font-weight:700}
 .cartbar .ctotal{flex:1;padding:0 10px}
@@ -81,7 +96,7 @@ a{color:inherit;text-decoration:none}
 .cartbar .go[disabled]{opacity:.5}
 .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end;justify-content:center}
 .mask.show{display:flex}
-.sheet{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:16px;max-height:85vh;overflow:auto;position:relative}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:16px;max-height:85vh;overflow:auto;position:relative}
 .sheet.center{max-width:360px;border-radius:16px;margin:auto;align-self:center}
 .sheet h3{margin:0 0 10px}
 .sheet .close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:#999}
@@ -233,7 +248,7 @@ function renderCustomer(app, tableId){
     <div class="topbar">
       <button class="back" id="backHome" aria-label="back">‹</button>
       <h1>${escapeHTML(DB.shopName)}</h1>
-      <button class="btn ghost sm" id="goAdmin">管理</button>
+      <button class="btn ghost sm" id="goAdmin" title="管理后台">⚙</button>
     </div>
 
     <div class="banner-wrap">
@@ -242,10 +257,24 @@ function renderCustomer(app, tableId){
     </div>
 
     <div class="shop-head">
-      <div class="n">${escapeHTML(DB.shopName)}</div>
-      <div class="meta"><span>评分 <b>4.8</b></span><span>桌号 <b>${escapeHTML(table.label)}</b></span><span>营业中</span></div>
+      <div class="top">
+        <div class="logo"></div>
+        <div class="nwrap">
+          <div class="n"><span class="badge">堂食店</span>${escapeHTML(DB.shopName)}</div>
+          <div class="meta">
+            <span class="star">★ 4.8</span>
+            <span>月售 <b>100+</b></span>
+            <span>桌号 <b>${escapeHTML(table.label)}</b></span>
+          </div>
+        </div>
+      </div>
     </div>
-
+    <div class="promo">
+      <div class="coupon">新店优惠 · 满30减10</div>
+      <div class="coupon">收藏店铺领专享优惠券</div>
+      <div class="coupon">堂食专享 · 下单即送小吃</div>
+    </div>
+    <div class="tips">温馨提示：请适量点餐</div>
     <div class="tabs">
       <span class="on">点菜</span><span>评价</span><span>商家</span>
     </div>
@@ -261,7 +290,7 @@ function renderCustomer(app, tableId){
         <div class="t" id="cartTotal">${money(0)}</div>
         <div class="s" id="cartHint">购物车是空的</div>
       </div>
-      <button class="go" id="confirmBtn" disabled>去结算</button>
+      <button class="go" id="confirmBtn" disabled>选好了</button>
     </div>
   </div>`;
 
@@ -828,4 +857,6 @@ function adminOrders(panel){
 </script>
 </body>
 </html>
+
+
 
