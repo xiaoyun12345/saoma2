@@ -137,8 +137,8 @@ th{color:#777;font-weight:500;background:#fafafc}
 .cartlist .ci:last-child{border-bottom:none}
 .cartlist .ci .n{flex:1}
 .small{font-size:12px;color:var(--muted)}
-/* admin dish list responsive */
-.dish-admin-list{display:grid;grid-template-columns:1fr;gap:10px}
+/* admin dish list - card layout on all screens */
+.dish-admin-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
 .dish-admin-card{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
 .dish-admin-card .thumb{width:60px;height:60px;border-radius:8px;flex-shrink:0}
 .dish-admin-card .body{flex:1;min-width:0}
@@ -147,15 +147,6 @@ th{color:#777;font-weight:500;background:#fafafc}
 .dish-admin-card .body .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:13px;color:#555}
 .dish-admin-card .body .meta .pr{color:var(--red);font-weight:700}
 .dish-admin-card .acts{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
-.admin-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-@media(min-width:1024px){
-  .dish-admin-list{display:none}
-  .dish-admin-table{display:table}
-}
-@media(max-width:1023px){
-  .dish-admin-table{display:none}
-  .dish-admin-list{display:grid}
-}
 </style>
 </head>
 <body>
@@ -616,10 +607,7 @@ function adminDishes(panel){
     </div>
     <div class="col-8">
       <div class="card"><h3 style="margin-top:0">菜品列表</h3>
-        <div class="admin-table-wrap">
-          <table class="dish-admin-table"><thead><tr><th>图片</th><th>菜名</th><th>分类</th><th>价格</th><th></th></tr></thead><tbody id="drows"></tbody></table>
-        </div>
-        <div class="dish-admin-list" id="dlist"></div>
+<div class="dish-admin-list" id="dlist"></div>
       </div>
     </div>
   </div>`;
@@ -661,40 +649,25 @@ function bindDishActions(root){
   root.addEventListener("click", handler);
 }
 function drawDishesTable(){
-  const tb=$("#drows"); const list=$("#dlist");
-  if(!DB.dishes.length){
-    if(tb) tb.innerHTML=`<tr><td colspan="5" class="empty">暂无菜品</td></tr>`;
-    if(list) list.innerHTML=`<div class="empty">暂无菜品</div>`;
-    return;
-  }
-  if(tb){
-    tb.innerHTML = DB.dishes.map(d=>{
-      const cat=DB.categories.find(c=>c.id===d.cat)?.name||"-";
-      const img=d.img?`<img src="${d.img}" class="thumb"/>`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:#bbb">无</div>`;
-      return `<tr><td>${img}</td><td>${escapeHTML(d.name)}${d.tag?`<span class="tag" style="margin-left:6px">${escapeHTML(d.tag)}</span>`:""}<div class="small">${escapeHTML(d.desc||"")}</div></td><td>${escapeHTML(cat)}</td><td>${money(d.price)}</td>
-      <td><button class="btn ghost sm" data-edit="${d.id}">编辑</button> <button class="btn gray sm" data-del="${d.id}">删除</button></td></tr>`;
-    }).join("");
-    bindDishActions(tb);
-  }
-  if(list){
-    list.innerHTML = DB.dishes.map(d=>{
-      const cat=DB.categories.find(c=>c.id===d.cat)?.name||"-";
-      const img=d.img?`<img src="${d.img}" class="thumb"/>`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:#bbb">无</div>`;
-      return `<div class="dish-admin-card" data-dish="${d.id}">
-        ${img}
-        <div class="body">
-          <div class="n">${escapeHTML(d.name)}${d.tag?`<span class="tag" style="margin-left:6px">${escapeHTML(d.tag)}</span>`:""}</div>
-          <div class="d">${escapeHTML(d.desc||"暂无描述")}</div>
-          <div class="meta"><span>${escapeHTML(cat)}</span><span class="pr">${money(d.price)}</span></div>
-        </div>
-        <div class="acts">
-          <button class="btn ghost sm" data-edit="${d.id}">编辑</button>
-          <button class="btn gray sm" data-del="${d.id}">删除</button>
-        </div>
-      </div>`;
-    }).join("");
-    bindDishActions(list);
-  }
+  const list=$("#dlist"); if(!list) return;
+  if(!DB.dishes.length){ list.innerHTML=`<div class="empty">暂无菜品</div>`; return; }
+  list.innerHTML = DB.dishes.map(d=>{
+    const cat=DB.categories.find(c=>c.id===d.cat)?.name||"-";
+    const img=d.img?`<img src="${d.img}" class="thumb"/>`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:#bbb">无</div>`;
+    return `<div class="dish-admin-card" data-dish="${d.id}">
+      ${img}
+      <div class="body">
+        <div class="n">${escapeHTML(d.name)}${d.tag?`<span class="tag" style="margin-left:6px">${escapeHTML(d.tag)}</span>`:""}</div>
+        <div class="d">${escapeHTML(d.desc||"暂无描述")}</div>
+        <div class="meta"><span>${escapeHTML(cat)}</span><span class="pr">${money(d.price)}</span></div>
+      </div>
+      <div class="acts">
+        <button class="btn ghost sm" data-edit="${d.id}">编辑</button>
+        <button class="btn gray sm" data-del="${d.id}">删除</button>
+      </div>
+    </div>`;
+  }).join("");
+  bindDishActions(list);
 }
 
 /* ----- Categories ----- */
@@ -910,6 +883,9 @@ function adminOrders(panel){
 </script>
 </body>
 </html>
+
+
+
 
 
 
