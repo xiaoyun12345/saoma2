@@ -645,7 +645,10 @@ function bindDishActions(root){
     if(ed){ editingDish=DB.dishes.find(x=>x.id===ed); dishImgData=editingDish.img; adminDishes($("#apanel")); }
     if(dl){ if(confirm("确认删除该菜品？")){ DB.dishes=DB.dishes.filter(x=>x.id!==dl); saveData(); adminDishes($("#apanel")); } }
   };
-  root.replaceWith(root.cloneNode(true)); // ensure no duplicate listeners
+  // Re-renders rebuild the container each time; replace any previous
+  // handler instead of cloning nodes (cloning leaves clicks dead).
+  if(root._dishHandler){ root.removeEventListener("click", root._dishHandler); }
+  root._dishHandler = handler;
   root.addEventListener("click", handler);
 }
 function drawDishesTable(){
