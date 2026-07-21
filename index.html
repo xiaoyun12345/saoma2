@@ -321,18 +321,18 @@ function renderCustomer(app, tableId){
     const target = document.getElementById("cat-"+curCat);
     if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
   });
-  // auto highlight category while scrolling - container scrolls
-  const root = $("#customerRoot");
-  root.addEventListener("scroll", ()=>{
+  // auto highlight category while scrolling - page scrolls on window
+  function onMenuScroll(){
     const groups = $$(".cat-group", $("#dishes"));
-    let cur = groups[0]?.dataset.id;
+    if(!groups.length) return;
+    let cur = groups[0].dataset.id;
     for(const g of groups){
       const r = g.getBoundingClientRect();
-      const top = r.top - root.getBoundingClientRect().top;
-      if(top < 120) cur = g.dataset.id;
+      if(r.top < 180) cur = g.dataset.id;
     }
     if(cur && cur !== curCat){ curCat = cur; renderCats(); }
-  });
+  }
+  window.addEventListener("scroll", onMenuScroll, { passive:true });
 }
 
 function renderBanner(){
@@ -370,7 +370,7 @@ function renderDishes(){
       (dishes.length ? dishes.map(dishHTML).join("") : `<div class="empty">暂无菜品</div>`);
     d.appendChild(g);
   }
-  d.addEventListener("click", onDishClick);
+  if(!d._dishBound){ d.addEventListener("click", onDishClick); d._dishBound = true; }
 }
 function dishHTML(d){
   const img = d.img ? `<img src="${d.img}" alt="${escapeHTML(d.name)}"/>` : `暂无图片`;
@@ -693,7 +693,7 @@ function drawCats(){
     return `<tr><td><input type="text" value="${escapeHTML(c.name)}" data-id="${c.id}" class="cn"/></td><td>${cnt}</td>
     <td><button class="btn gray sm" data-up="${c.id}">上移</button> <button class="btn gray sm" data-down="${c.id}">下移</button> <button class="btn ghost sm" data-del="${c.id}">删除</button></td></tr>`;
   }).join("");
-  tb.addEventListener("change", e=>{ if(e.target.classList.contains("cn")){const c=DB.categories.find(x=>x.id===e.target.dataset.id);c.name=e.target.value.trim()||c.name;saveData()}},{once:true});
+  if(!tb._cBound){ tb.addEventListener("change", e=>{ if(e.target.classList.contains("cn")){const c=DB.categories.find(x=>x.id===e.target.dataset.id);c.name=e.target.value.trim()||c.name;saveData()}});
   tb.addEventListener("click", e=>{
     const up=e.target.dataset.up, dn=e.target.dataset.down, dl=e.target.dataset.del;
     const i=DB.categories.findIndex(c=>c.id===(up||dn||dl)); if(i<0)return;
@@ -705,7 +705,7 @@ function drawCats(){
     if(up && i>0){ [DB.categories[i-1],DB.categories[i]]=[DB.categories[i],DB.categories[i-1]]; saveData(); }
     if(dn && i<DB.categories.length-1){ [DB.categories[i+1],DB.categories[i]]=[DB.categories[i],DB.categories[i+1]]; saveData(); }
     drawCats();
-  },{once:true});
+  }); tb._cBound=true; }
 }
 
 /* ----- Tables / QR ----- */
@@ -753,7 +753,7 @@ function drawTables(){
     const holder = $("#qr-"+t.id); holder.innerHTML="";
     new QRCode(holder,{text:tableLink(t.id),width:140,height:140,correctLevel:QRCode.CorrectLevel.M});
   });
-  g.addEventListener("click", e=>{
+  if(!g._tBound){ g.addEventListener("click", e=>{
     const rn=e.target.dataset.ren, dl=e.target.dataset.dl, dt=e.target.dataset.dt;
     if(rn){ const t=DB.tables.find(x=>x.id===rn); const n=prompt("修改桌号名称",t.label); if(n){t.label=n.trim()||t.label;saveData();drawTables()} }
     if(dl){
@@ -762,7 +762,7 @@ function drawTables(){
       const a=document.createElement("a"); a.href=canvas.src||canvas.toDataURL("image/png"); a.download=t.label+".png"; a.click();
     }
     if(dt){ if(confirm("确认删除该桌号二维码？")){DB.tables=DB.tables.filter(x=>x.id!==dt);saveData();drawTables()} }
-  },{once:true});
+  }); g._tBound=true; }
 }
 function tableLink(id){ return location.origin+location.pathname+"#/order?table="+id; }
 
@@ -786,14 +786,14 @@ function drawB(){
     <td><button class="btn gray sm" data-up="${i}">上移</button>
         <button class="btn gray sm" data-dn="${i}">下移</button>
         <button class="btn ghost sm" data-dl="${i}">删除</button></td></tr>`).join("");
-  tb.addEventListener("click", e=>{
+  if(!tb._bBound){ tb.addEventListener("click", e=>{
     const up=e.target.dataset.up, dn=e.target.dataset.dn, dl=e.target.dataset.dl;
     const i = (up!==undefined)?+up:(dn!==undefined)?+dn:(dl!==undefined?+dl:-1); if(i<0) return;
     if(up!==undefined && i>0){ [DB.banners[i-1],DB.banners[i]]=[DB.banners[i],DB.banners[i-1]]; }
     if(dn!==undefined && i<DB.banners.length-1){ [DB.banners[i+1],DB.banners[i]]=[DB.banners[i],DB.banners[i+1]]; }
     if(dl!==undefined){ DB.banners.splice(i,1); }
     saveData(); drawB();
-  },{once:true});
+  }); tb._bBound=true; }
 }
 
 /* ----- Payment ----- */
