@@ -147,6 +147,25 @@ th{color:#777;font-weight:500;background:#fafafc}
 .dish-admin-card .body .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:13px;color:#555}
 .dish-admin-card .body .meta .pr{color:var(--red);font-weight:700}
 .dish-admin-card .acts{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.admin-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* compact dish editor on phones */
+.admin-dish-editor{padding:12px}
+.admin-dish-editor h3{margin:0 0 8px;font-size:16px}
+.admin-dish-editor label{margin:6px 0 3px;font-size:12px;color:#555}
+.admin-dish-editor input[type=text],
+.admin-dish-editor input[type=number],
+.admin-dish-editor textarea,
+.admin-dish-editor select{padding:7px 10px;font-size:14px}
+.admin-dish-editor textarea{min-height:44px;resize:vertical}
+.admin-dish-editor .row.imgrow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.admin-dish-editor .imgrow .thumb{width:56px;height:56px;flex-shrink:0}
+.admin-dish-editor .row.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.admin-dish-editor .row.twocol .grow{flex:0 0 auto;width:100%}
+.admin-dish-editor .save-row{display:flex;gap:8px;margin-top:10px}
+.admin-dish-editor .save-row .btn{padding:10px;font-size:14px}
+@media(max-width:720px){
+  .admin-dish-editor textarea{min-height:38px}
+}
 </style>
 </head>
 <body>
@@ -586,20 +605,20 @@ function adminDishes(panel){
   panel.innerHTML = `
   <div class="grid">
     <div class="col-4">
-      <div class="card">
-        <h3 style="margin-top:0">${editingDish?'编辑菜品':'新增菜品'}</h3>
-        <div class="row">
+      <div class="card admin-dish-editor">
+        <h3>${editingDish?'编辑菜品':'新增菜品'}</h3>
+        <div class="row imgrow">
           <img id="dp" class="thumb" src="${editingDish?.img||''}" onerror="this.style.visibility='hidden'"/>
-          <button class="btn gray sm" id="pickImg">${editingDish?.img?'更换图片':'上传图片'}</button>
+          <button class="btn gray sm grow" id="pickImg">${editingDish?.img?'更换图片':'上传图片'}</button>
         </div>
         <label>菜名</label><input id="dn" type="text" placeholder="例如：十荤十素老式麻辣烫"/>
         <label>描述</label><textarea id="dd" placeholder="菜品简介、口味提示"></textarea>
-        <div class="row">
-          <div class="grow"><label>价格(元)</label><input id="dpr" type="number" min="0" step="0.01"/></div>
-          <div class="grow"><label>分类</label><select id="dc">${DB.categories.map(c=>`<option value="${c.id}">${escapeHTML(c.name)}</option>`).join("")}</select></div>
+        <div class="row twocol">
+          <div><label>价格(元)</label><input id="dpr" type="number" min="0" step="0.01"/></div>
+          <div><label>分类</label><select id="dc">${DB.categories.map(c=>`<option value="${c.id}">${escapeHTML(c.name)}</option>`).join("")}</select></div>
         </div>
         <label>标签（可选）</label><input id="dt" type="text" placeholder="例如：门店销量第1名"/>
-        <div style="display:flex;gap:8px;margin-top:10px">
+        <div class="save-row">
           <button class="btn grow" id="saveD">保存</button>
           <button class="btn gray" id="cancelD" style="${editingDish?'':'display:none'}">取消</button>
         </div>
