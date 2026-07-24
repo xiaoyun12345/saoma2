@@ -680,6 +680,7 @@ function openDishEditor(dish){
         <button class="btn gray" data-close>取消</button>
       </div>
     </div>`);
+  $(".sheet", $("#sheetMask")).classList.add("center");
   $("#edc").value = dish.cat;
   if(dish.img) $("#edp").style.visibility="";
   $("#epick").onclick = async ()=>{
