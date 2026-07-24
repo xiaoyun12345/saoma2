@@ -184,7 +184,7 @@ th{color:#777;font-weight:500;background:#fafafc}
 /* ================= Data layer ================= */
 const STORAGE_KEY = "rest_order_app_v1";
 const DEFAULT_DATA = {
-  v: 2,
+  v: 3,
   admin: { username: "admin", password: "123456" },
   shopName: "大茶缸麻辣烫·麻辣拌",
   banners: [],
@@ -209,11 +209,19 @@ function loadData(){
     if(!raw) return clone(DEFAULT_DATA);
     const d = JSON.parse(raw);
     const merged = Object.assign(clone(DEFAULT_DATA), d);
-    // v2: 清空默认示例菜品（仅对未手动设置过、或老版本自带示例数据的用户生效一次）
-    if(!d.v || d.v < 2){
-      const sampleIds = new Set(["d1","d2","d3","d4"]);
-      merged.dishes = (d.dishes || []).filter(x => !sampleIds.has(x.id));
-      merged.v = 2;
+    // v3: 清空历史残留的示例菜品（按名称+价格识别，覆盖 id 被改过的情况）
+    if(!d.v || d.v < 3){
+      const isSample = x => (
+        (x.name==="麻辣拌（中份）" && Number(x.price)===18.8) ||
+        (x.name==="炸串拼盘" && Number(x.price)===12) ||
+        (x.name==="冰粉（红糖）" && Number(x.price)===6) ||
+        (x.name==="十荤十素老式麻辣烫+面" && Number(x.price)===22.99)
+      );
+      const nonSample = (d.dishes || []).filter(x => !isSample(x));
+      // 仅在用户没有自己加过菜时清空，避免误删用户自己的菜品
+      merged.dishes = nonSample.length ? nonSample : [];
+      merged.v = 3;
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(merged)); }catch(e){}
     }
     return merged;
   }catch(e){ return clone(DEFAULT_DATA); }
@@ -951,7 +959,6 @@ function adminOrders(panel){
 </script>
 </body>
 </html>
-
 
 
 
