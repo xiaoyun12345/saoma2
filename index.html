@@ -184,6 +184,7 @@ th{color:#777;font-weight:500;background:#fafafc}
 /* ================= Data layer ================= */
 const STORAGE_KEY = "rest_order_app_v1";
 const DEFAULT_DATA = {
+  v: 2,
   admin: { username: "admin", password: "123456" },
   shopName: "大茶缸麻辣烫·麻辣拌",
   banners: [],
@@ -192,12 +193,7 @@ const DEFAULT_DATA = {
     { id: "c2", name: "招牌麻辣烫" },
     { id: "c3", name: "加点啥" }
   ],
-  dishes: [
-    { id:"d1", cat:"c2", name:"十荤十素老式麻辣烫+面", desc:"十荤十素，经典东北口味，配手擀面一份。", price:22.99, img:"", tag:"门店销量第1名" },
-    { id:"d2", cat:"c2", name:"麻辣拌（中份）", desc:"自选麻辣拌，中份，可备注辣度。", price:18.8, img:"" },
-    { id:"d3", cat:"c3", name:"炸串拼盘", desc:"多种炸串小份拼盘，配秘制蘸料。", price:12.0, img:"" },
-    { id:"d4", cat:"c1", name:"冰粉（红糖）", desc:"解辣神器，手工冰粉配红糖浆。", price:6.0, img:"" }
-  ],
+  dishes: [],
   tables: [{ id:"t1", label:"1号桌" }],
   payment: {
     wechat: { enabled:false, label:"微信支付", img:"" },
@@ -212,7 +208,14 @@ function loadData(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if(!raw) return clone(DEFAULT_DATA);
     const d = JSON.parse(raw);
-    return Object.assign(clone(DEFAULT_DATA), d);
+    const merged = Object.assign(clone(DEFAULT_DATA), d);
+    // v2: 清空默认示例菜品（仅对未手动设置过、或老版本自带示例数据的用户生效一次）
+    if(!d.v || d.v < 2){
+      const sampleIds = new Set(["d1","d2","d3","d4"]);
+      merged.dishes = (d.dishes || []).filter(x => !sampleIds.has(x.id));
+      merged.v = 2;
+    }
+    return merged;
   }catch(e){ return clone(DEFAULT_DATA); }
 }
 let DB = loadData();
