@@ -611,10 +611,10 @@ function adminDishes(panel){
   <div class="grid">
     <div class="col-4">
       <div class="card admin-dish-editor">
-        <h3>${editingDish?'编辑菜品':'新增菜品'}</h3>
+        <h3>新增菜品</h3>
         <div class="row imgrow">
-          <img id="dp" class="thumb" src="${editingDish?.img||''}" onerror="this.style.visibility='hidden'"/>
-          <button class="btn gray sm grow" id="pickImg">${editingDish?.img?'更换图片':'上传图片'}</button>
+          <img id="dp" class="thumb" src="" onerror="this.style.visibility='hidden'"/>
+          <button class="btn gray sm grow" id="pickImg">上传图片</button>
         </div>
         <label>菜名</label><input id="dn" type="text" placeholder="例如：十荤十素老式麻辣烫"/>
         <label>描述</label><textarea id="dd" placeholder="菜品简介、口味提示"></textarea>
@@ -624,8 +624,7 @@ function adminDishes(panel){
         </div>
         <label>标签（可选）</label><input id="dt" type="text" placeholder="例如：门店销量第1名"/>
         <div class="save-row">
-          <button class="btn grow" id="saveD">保存</button>
-          <button class="btn gray" id="cancelD" style="${editingDish?'':'display:none'}">取消</button>
+          <button class="btn grow" id="saveD">添加菜品</button>
         </div>
       </div>
     </div>
@@ -635,38 +634,73 @@ function adminDishes(panel){
       </div>
     </div>
   </div>`;
-  if(editingDish){
-    $("#dn").value=editingDish.name; $("#dd").value=editingDish.desc||""; $("#dpr").value=editingDish.price;
-    $("#dc").value=editingDish.cat; $("#dt").value=editingDish.tag||"";
-    if(editingDish.img) $("#dp").style.visibility="";
-  }
+  // reset add-form state
+  dishImgData=null;
+  $("#dp").removeAttribute("src"); $("#dp").style.visibility="hidden";
   $("#pickImg").onclick = async ()=>{
     const d = await pickImage(); if(!d) return;
     dishImgData=d; $("#dp").src=d; $("#dp").style.visibility="";
   };
-  $("#cancelD").onclick = ()=>{ editingDish=null; dishImgData=null; adminDishes(panel); };
   $("#saveD").onclick = ()=>{
     const name=$("#dn").value.trim(), desc=$("#dd").value.trim(), price=parseFloat($("#dpr").value), cat=$("#dc").value, tag=$("#dt").value.trim();
     if(!name) return toast("请填写菜名");
     if(!(price>=0)) return toast("请填写有效价格");
-    if(editingDish){
-      Object.assign(editingDish,{name,desc,price,cat,tag,img:dishImgData||editingDish.img});
-      toast("已更新");
-    }else{
-      DB.dishes.push({id:uid(),name,desc,price,cat,tag,img:dishImgData||""});
-      toast("已添加");
-    }
-    saveData(); editingDish=null; dishImgData=null;
+    DB.dishes.push({id:uid(),name,desc,price,cat,tag,img:dishImgData||""});
+    toast("已添加");
+    saveData(); dishImgData=null;
     adminDishes(panel);
   };
   drawDishesTable();
 }
 let editingDish=null, dishImgData=null;
+
+function openDishEditor(dish){
+  editingDish = dish;
+  dishImgData = dish.img || null;
+  const catsOpts = DB.categories.map(c=>`<option value="${c.id}">${escapeHTML(c.name)}</option>`).join("");
+  showSheet(`<button class="close" data-close>×</button>
+    <div class="admin-dish-editor">
+      <h3>编辑菜品</h3>
+      <div class="row imgrow">
+        <img id="edp" class="thumb" src="${dish.img||''}" onerror="this.style.visibility='hidden'"/>
+        <button class="btn gray sm grow" id="epick">${dish.img?'更换图片':'上传图片'}</button>
+      </div>
+      <label>菜名</label><input id="edn" type="text" value="${escapeHTML(dish.name)}"/>
+      <label>描述</label><textarea id="edd" placeholder="菜品简介、口味提示">${escapeHTML(dish.desc||"")}</textarea>
+      <div class="row twocol">
+        <div><label>价格(元)</label><input id="edpr" type="number" min="0" step="0.01" value="${dish.price}"/></div>
+        <div><label>分类</label><select id="edc">${catsOpts}</select></div>
+      </div>
+      <label>标签（可选）</label><input id="edt" type="text" value="${escapeHTML(dish.tag||"")}" placeholder="例如：门店销量第1名"/>
+      <div class="save-row">
+        <button class="btn grow" id="esave">保存修改</button>
+        <button class="btn gray" data-close>取消</button>
+      </div>
+    </div>`);
+  $("#edc").value = dish.cat;
+  if(dish.img) $("#edp").style.visibility="";
+  $("#epick").onclick = async ()=>{
+    const d = await pickImage(); if(!d) return;
+    dishImgData=d; $("#edp").src=d; $("#edp").style.visibility="";
+  };
+  $("#esave").onclick = ()=>{
+    const name=$("#edn").value.trim(), desc=$("#edd").value.trim(), price=parseFloat($("#edpr").value), cat=$("#edc").value, tag=$("#edt").value.trim();
+    if(!name) return toast("请填写菜名");
+    if(!(price>=0)) return toast("请填写有效价格");
+    Object.assign(editingDish,{name,desc,price,cat,tag,img:dishImgData||editingDish.img});
+    saveData();
+    editingDish=null; dishImgData=null;
+    closeSheet();
+    toast("已更新");
+    drawDishesTable();
+  };
+}
+
 function bindDishActions(root){
   const handler = e=>{
     const ed=e.target.closest("[data-edit]")?.dataset.edit;
     const dl=e.target.closest("[data-del]")?.dataset.del;
-    if(ed){ editingDish=DB.dishes.find(x=>x.id===ed); dishImgData=editingDish.img; adminDishes($("#apanel")); }
+    if(ed){ openDishEditor(DB.dishes.find(x=>x.id===ed)); }
     if(dl){ if(confirm("确认删除该菜品？")){ DB.dishes=DB.dishes.filter(x=>x.id!==dl); saveData(); adminDishes($("#apanel")); } }
   };
   // Re-renders rebuild the container each time; replace any previous
